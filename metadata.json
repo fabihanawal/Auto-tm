@@ -1,0 +1,6 @@
+{
+  "name": "ই-পর্চা খতিয়ান ও নামজারি অটো-ডাউনলোডার",
+  "description": "বাংলাদেশ ভূমি মন্ত্রণালয় (eporchia.gov.bd / land.gov.bd) এর খতিয়ান ও নামজারি স্বয়ংক্রিয় ব্যাচ ডাউনলোড ও প্লে-রাইট অটোমেশন সিস্টেম।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
