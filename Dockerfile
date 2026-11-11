@@ -23,8 +23,8 @@ RUN apt-get update && apt-get install -y \
 # Copy package configuration
 COPY package*.json ./
 
-# Install npm dependencies
-RUN npm install
+# Install npm dependencies with legacy peer deps
+RUN npm install --legacy-peer-deps
 
 # Copy all application code
 COPY . .
