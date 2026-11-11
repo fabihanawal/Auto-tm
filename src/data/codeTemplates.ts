@@ -718,4 +718,35 @@ node scripts/batch-downloader.js --division "ঢাকা বিভাগ" --dis
 - সরকারি সাইটের Terms of Service মেনে আইনসঙ্গত উদ্দেশ্যে ব্যবহার করুন।
 `,
   },
+  {
+    name: 'Dockerfile (Render / Railway / VPS Deploy)',
+    path: 'Dockerfile',
+    language: 'dockerfile',
+    description: 'Docker ইমেজ যার মধ্যে Node.js, Chromium ব্রাউজার এবং সমস্ত Playwright ওএস ডিপেন্ডেন্সি অন্তর্ভুক্ত।',
+    content: `# Production Dockerfile for Playwright & Next.js
+FROM mcr.microsoft.com/playwright:v1.45.3-jammy
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy project files
+COPY . .
+
+# Build Next.js application
+RUN npm run build
+
+# Expose server port
+EXPOSE 3000
+
+ENV PORT=3000
+ENV NODE_ENV=production
+
+# Start Next.js server with Playwright ready
+CMD ["npm", "start"]
+`,
+  },
 ];
+

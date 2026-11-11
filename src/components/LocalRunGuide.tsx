@@ -214,6 +214,75 @@ pm2 logs eporchia-scraper"
           </div>
         </div>
       </section>
+
+      {/* Step 5: Vercel vs VPS vs Docker Deployment Guide */}
+      <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-3">
+          <Server className="w-5 h-5 text-amber-400" />
+          <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <span>৫. ভারসেলে (Vercel) ডিপ্লয় সংক্রান্ত গুরুত্বপূর্ণ নির্দেশনা ও সমাধান</span>
+            <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono">
+              FAQ
+            </span>
+          </h3>
+        </div>
+
+        <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-600/30 text-xs text-amber-200/90 mb-4 leading-relaxed">
+          <strong className="text-amber-300 block mb-1">সরাসরি ভারসেলে (Vercel) ডিপ্লয় করলে কী হবে?</strong>
+          ভারসেল (Vercel) হচ্ছে একটি <strong>Serverless Platform</strong>। সরাসরি ভারসেলে ডিপ্লয় করলে সাধারণ Next.js ফ্রন্টএন্ড সুন্দরভাবে চলবে, কিন্তু সার্ভারলেস ফাংশনে <strong>Playwright Chromium ব্রাউজার সরাসরি ব্যাকগ্রাউন্ডে চলতে পারবে না</strong>। এর ৩টি মূল কারণ:
+          <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-300">
+            <li><strong>টাইমআউট লিমিট:</strong> ভারসেলের ফ্রি অ্যাকাউন্টে ফাংশন টাইমআউট সর্বোচ্চ ১০-১৫ সেকেন্ড (প্রো অ্যাকাউন্টে ৬০ সেকেন্ড)। ৫০-১০০টি খতিয়ান স্ক্র্যাপ করতে কয়েক মিনিট সময় প্রয়োজন হয়, ফলে ভারসেল টাইমআউট হয়ে রিকোয়েস্ট কেটে যাবে।</li>
+            <li><strong>হেভি ব্রাউজার সাইজ:</strong> সম্পূর্ণ ক্রোমিয়াম ব্রাউজার সাইজ প্রায় ৩০০+ MB, যা ভারসেলের সার্ভারলেস সাইজ লিমিট (২৫০ MB) ছাড়িয়ে যায়।</li>
+            <li><strong>ফাইল স্টোরেজ:</strong> ভারসেলে লোকাল ডিস্কে ফাইল সেভ করা যায় না (Ephemeral read-only)।</li>
+          </ul>
+        </div>
+
+        <h4 className="text-sm font-semibold text-emerald-400 mb-2">তাহলে কীভাবে চালাবেন? (৩টি সহজ সমাধান):</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+          {/* Solution 1: Local Machine */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded uppercase font-semibold">
+                পদ্ধতি ১ (সবচেয়ে সেরা)
+              </span>
+              <h5 className="font-bold text-slate-200 mt-2 mb-1">নিজের কম্পিউটার / ল্যাপটপ</h5>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                বাংলাদেশি ব্রডব্যান্ড আইপি দিয়ে নিজের কম্পিউটারে টার্মিনাল বা <code className="text-emerald-300">npm run dev</code> দিয়ে চালানো সবচেয়ে নিরাপদ ও দ্রুত। ক্যাপচা ম্যানুয়ালি পূরণ করা যায় এবং আইপি ব্লক হয় না।
+              </p>
+            </div>
+            <div className="mt-3 text-[11px] text-emerald-400 font-mono">খরচ: সম্পূর্ণ ফ্রি</div>
+          </div>
+
+          {/* Solution 2: Docker on Render / Railway */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded uppercase font-semibold">
+                পদ্ধতি ২ (ক্লাউড ডকার)
+              </span>
+              <h5 className="font-bold text-slate-200 mt-2 mb-1">Render / Railway / Fly.io</h5>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                ভারসেলের বদলে <strong>Render.com</strong> বা <strong>Railway.app</strong>-এ Dockerfile সহ ডিপ্লয় করলে ব্যাকগ্রাউন্ডে ক্রোমিয়াম ও ফুল-টাইম সার্ভার কোনো টাইমআউট ছাড়াই চলবে।
+              </p>
+            </div>
+            <div className="mt-3 text-[11px] text-sky-400 font-mono">Docker Support: ১০০% রেডি</div>
+          </div>
+
+          {/* Solution 3: Browserless for Vercel */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded uppercase font-semibold">
+                পদ্ধতি ৩ (ভারসেল + ব্রাউজারলেস)
+              </span>
+              <h5 className="font-bold text-slate-200 mt-2 mb-1">Vercel + Browserless.io</h5>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                যদি ফ্রন্টএন্ড ভারসেলেই রাখতে চান, তবে রিমোট ক্লাউড ব্রাউজার হিসেবে <code className="text-purple-300">browserless.io</code> এর WebSocket CDP কানেক্ট করতে হবে:
+              </p>
+            </div>
+            <div className="mt-3 text-[11px] text-purple-400 font-mono">chromium.connectOverCDP(...)</div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
