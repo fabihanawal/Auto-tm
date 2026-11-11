@@ -33,13 +33,16 @@ interface DownloadItem {
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
-  // Crawler Configuration
+  // Crawler Configuration - Pre-configured with Naogaon district, Rajshahi Division
   const [config, setConfig] = useState<CrawlerConfig>({
-    divisionId: GEO_DATA[0].id,
-    districtId: GEO_DATA[0].districts[0].id,
-    upazilaId: GEO_DATA[0].districts[0].upazilas[1].id, // Savar default
-    unionId: GEO_DATA[0].districts[0].upazilas[1].unions[0].id,
-    mouzaId: GEO_DATA[0].districts[0].upazilas[1].unions[0].mouzas[0].id,
+    divisionId: 'rajshahi_div',
+    districtId: 'naogaon_dist',
+    upazilaId: 'naogaon_sadar',
+    unionId: 'naogaon_pauro',
+    mouzaId: 'ng_m1',
+    isCustomMouza: false,
+    customMouzaName: '',
+    customJlNo: '',
     surveyType: 'RS',
     inputMode: 'range',
     rangeStart: 1,
@@ -72,8 +75,8 @@ export default function App() {
       id: 'init-1',
       timestamp: new Date().toLocaleTimeString(),
       type: 'info',
-      message: 'ই-পর্চা প্লে-রাইট অটোমেশন সিস্টেম সফলভাবে লোড হয়েছে।',
-      details: 'পোর্টাল: https://eporchia.gov.bd/khatian-search | ইঞ্জিন: Chromium Engine',
+      message: 'ই-পর্চা প্লে-রাইট অটোমেশন সিস্টেম সফলভাবে লোড হয়েছে। নওগাঁ জেলার ১১টি উপজেলা ও মৌজা ডেটাবেস প্রস্তুত।',
+      details: 'টার্গেট: রাজশাহী বিভাগ > নওগাঁ জেলা | ইঞ্জিন: Chromium Engine',
     },
   ]);
 
@@ -115,15 +118,27 @@ export default function App() {
     const dist = div.districts.find((d) => d.id === config.districtId) || div.districts[0];
     const upz = dist.upazilas.find((u) => u.id === config.upazilaId) || dist.upazilas[0];
     const un = upz.unions.find((u) => u.id === config.unionId) || upz.unions[0];
-    const mz = un.mouzas.find((m) => m.id === config.mouzaId) || un.mouzas[0];
+    const allUpzMouzas = upz.unions.flatMap((union) => union.mouzas);
+    const mz = allUpzMouzas.find((m) => m.id === config.mouzaId) || allUpzMouzas[0] || {
+      name: 'মৌজা',
+      jlNo: '০১',
+    };
+
+    const finalMouzaName = config.isCustomMouza && config.customMouzaName?.trim()
+      ? config.customMouzaName.trim()
+      : mz.name;
+
+    const finalJlNo = config.isCustomMouza && config.customJlNo?.trim()
+      ? config.customJlNo.trim()
+      : mz.jlNo;
 
     return {
       division: div.name,
       district: dist.name,
       upazila: upz.name,
       union: un.name,
-      mouza: mz.name,
-      jlNo: mz.jlNo,
+      mouza: finalMouzaName,
+      jlNo: finalJlNo,
     };
   };
 

@@ -24,6 +24,9 @@ export interface CrawlerConfig {
   upazilaId: string;
   unionId: string;
   mouzaId: string;
+  isCustomMouza?: boolean;
+  customMouzaName?: string;
+  customJlNo?: string;
   surveyType: string;
   inputMode: 'range' | 'list';
   rangeStart: number;
@@ -72,7 +75,24 @@ export const CrawlerDashboard: React.FC<CrawlerDashboardProps> = ({
   const currentDistrict = currentDivision.districts.find((d) => d.id === config.districtId) || currentDivision.districts[0];
   const currentUpazila = currentDistrict.upazilas.find((u) => u.id === config.upazilaId) || currentDistrict.upazilas[0];
   const currentUnion = currentUpazila.unions.find((u) => u.id === config.unionId) || currentUpazila.unions[0];
-  const currentMouza = currentUnion.mouzas.find((m) => m.id === config.mouzaId) || currentUnion.mouzas[0];
+  
+  // All mouzas in the selected upazila
+  const allUpazilaMouzas = currentUpazila.unions.flatMap((u) => u.mouzas);
+  const currentMouza = allUpazilaMouzas.find((m) => m.id === config.mouzaId) || allUpazilaMouzas[0] || {
+    id: 'm1',
+    name: 'মৌজা',
+    nameEn: 'Mouza',
+    jlNo: '০১',
+    surveyTypes: ['RS', 'BS', 'CS', 'SA', 'NAMJARI'],
+  };
+
+  const effectiveMouzaName = config.isCustomMouza && config.customMouzaName?.trim()
+    ? config.customMouzaName.trim()
+    : currentMouza.name;
+
+  const effectiveJlNo = config.isCustomMouza && config.customJlNo?.trim()
+    ? config.customJlNo.trim()
+    : currentMouza.jlNo;
 
   const handleDivisionChange = (divId: string) => {
     const div = GEO_DATA.find((d) => d.id === divId) || GEO_DATA[0];
@@ -146,7 +166,7 @@ export const CrawlerDashboard: React.FC<CrawlerDashboardProps> = ({
                   )}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  মৌজা: {currentMouza.name} (জে.এল {currentMouza.jlNo}) • জরিপ: {config.surveyType}
+                  মৌজা: {effectiveMouzaName} (জে.এল {effectiveJlNo}) • জরিপ: {config.surveyType}
                 </p>
               </div>
             </div>
@@ -221,12 +241,19 @@ export const CrawlerDashboard: React.FC<CrawlerDashboardProps> = ({
 
               {/* District */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">জেলা (District)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-medium text-slate-400">জেলা (District)</label>
+                  {config.districtId === 'naogaon_dist' && (
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-semibold">
+                      ১১টি উপজেলা
+                    </span>
+                  )}
+                </div>
                 <select
                   disabled={isRunning}
                   value={config.districtId}
                   onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition disabled:opacity-50"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition disabled:opacity-50 font-medium"
                 >
                   {currentDivision.districts.map((dist) => (
                     <option key={dist.id} value={dist.id}>
@@ -238,12 +265,14 @@ export const CrawlerDashboard: React.FC<CrawlerDashboardProps> = ({
 
               {/* Upazila */}
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">উপজেলা / সার্কেল</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  উপজেলা ({currentDistrict.upazilas.length}টি)
+                </label>
                 <select
                   disabled={isRunning}
                   value={config.upazilaId}
                   onChange={(e) => handleUpazilaChange(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition disabled:opacity-50"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500 transition disabled:opacity-50"
                 >
                   {currentDistrict.upazilas.map((u) => (
                     <option key={u.id} value={u.id}>
@@ -253,40 +282,74 @@ export const CrawlerDashboard: React.FC<CrawlerDashboardProps> = ({
                 </select>
               </div>
 
-              {/* Union */}
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">ইউনিয়ন / পৌরসভা</label>
-                <select
-                  disabled={isRunning}
-                  value={config.unionId}
-                  onChange={(e) => handleUnionChange(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition disabled:opacity-50"
-                >
-                  {currentUpazila.unions.map((un) => (
-                    <option key={un.id} value={un.id}>
-                      {un.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Mouza Selection */}
+              <div className="sm:col-span-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-medium text-slate-400">
+                    মৌজা নির্বাচন ({currentUpazila.name} উপজেলার তালিকা)
+                  </label>
+                  <button
+                    type="button"
+                    disabled={isRunning}
+                    onClick={() => setConfig((p) => ({ ...p, isCustomMouza: !p.isCustomMouza }))}
+                    className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-medium"
+                  >
+                    {config.isCustomMouza ? '← তালিকা থেকে সিলেক্ট করুন' : '✏️ তালিকায় নাম না থাকলে কাস্টম মৌজা লিখুন'}
+                  </button>
+                </div>
 
-              {/* Mouza */}
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  মৌজা নির্বাচন (Mouza & J.L. No)
-                </label>
-                <select
-                  disabled={isRunning}
-                  value={config.mouzaId}
-                  onChange={(e) => setConfig((prev) => ({ ...prev, mouzaId: e.target.value }))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition disabled:opacity-50"
-                >
-                  {currentUnion.mouzas.map((mz) => (
-                    <option key={mz.id} value={mz.id}>
-                      {mz.name} (জে.এল {mz.jlNo})
+                {!config.isCustomMouza ? (
+                  <select
+                    disabled={isRunning}
+                    value={config.mouzaId}
+                    onChange={(e) => {
+                      if (e.target.value === '__custom__') {
+                        setConfig((p) => ({ ...p, isCustomMouza: true }));
+                      } else {
+                        setConfig((prev) => ({ ...prev, mouzaId: e.target.value, isCustomMouza: false }));
+                      }
+                    }}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition disabled:opacity-50 font-medium"
+                  >
+                    {allUpazilaMouzas.map((mz) => (
+                      <option key={mz.id} value={mz.id}>
+                        {mz.name} — (জে.এল নং {mz.jlNo})
+                      </option>
+                    ))}
+                    <option value="__custom__" className="text-emerald-400 font-bold bg-slate-900">
+                      ✏️ অন্য কোনো মৌজা (নিজে নাম ও জে.এল নং লিখুন)...
                     </option>
-                  ))}
-                </select>
+                  </select>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-950 rounded-xl border border-emerald-500/30">
+                    <div>
+                      <label className="block text-[11px] text-emerald-400 mb-1 font-medium">
+                        কাস্টম মৌজার নাম:
+                      </label>
+                      <input
+                        type="text"
+                        disabled={isRunning}
+                        value={config.customMouzaName || ''}
+                        onChange={(e) => setConfig((p) => ({ ...p, customMouzaName: e.target.value }))}
+                        placeholder="যেমন: চক এনায়েতপুর"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-emerald-400 mb-1 font-medium">
+                        জে.এল নম্বর (J.L. No):
+                      </label>
+                      <input
+                        type="text"
+                        disabled={isRunning}
+                        value={config.customJlNo || ''}
+                        onChange={(e) => setConfig((p) => ({ ...p, customJlNo: e.target.value }))}
+                        placeholder="যেমন: ৭৩"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -455,7 +518,7 @@ export const CrawlerDashboard: React.FC<CrawlerDashboardProps> = ({
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 mb-5 text-xs">
                 <div className="flex justify-between text-slate-400">
                   <span>টার্গেট মৌজা:</span>
-                  <span className="font-semibold text-slate-200">{currentMouza.name}</span>
+                  <span className="font-semibold text-slate-200">{effectiveMouzaName} (জে.এল {effectiveJlNo})</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
                   <span>জরিপ ধরন:</span>
